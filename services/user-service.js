@@ -19,8 +19,27 @@ class UserService {
         }
     }
 
-    createToken(user) {
+    async signin(email, plainPassword) {
         try {
+            // fetch user using email
+            const user = await this.userRepository.getUserByEmail(email);
+            // comapre plainPassword with stored encryptedPassword
+            const isPasswordMatched = this.checkPassword(plainPassword, user.password);
+            if (!isPasswordMatched) {
+                console.log("password does not patch");
+                throw { error: "Incorrect Password" }
+            }
+            // if passwords match then create token and send it to user
+            const newJWT = this.createToken({ email: user.email, id: user.id });
+            return newJWT;
+        } catch (error) {
+            console.log("Something went wrong in repository layer");
+            throw error;
+        }
+    }
+
+    createToken(user) {
+        try { 
             const result = jwt.sign(user, JWT_KEY, { expiresIn: '1d' });
             return result;
         } catch (error) {

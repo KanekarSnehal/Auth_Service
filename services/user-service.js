@@ -38,8 +38,25 @@ class UserService {
         }
     }
 
+    async isAuthenticated(token) {
+        try {
+            const response = this.verifyToken(token);
+            if (!response) {
+                throw { error: 'Invalid token' }
+            }
+            const user = this.userRepository.get(response.id);
+            if (!user) {
+                throw { error: 'No user with the corresponding token exits' }
+            }
+            return user.id;
+        } catch (error) {
+            onsole.log("Something went wrong in repository layer");
+            throw error;
+        }
+    }
+
     createToken(user) {
-        try { 
+        try {
             const result = jwt.sign(user, JWT_KEY, { expiresIn: '1d' });
             return result;
         } catch (error) {
